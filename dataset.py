@@ -1,5 +1,5 @@
 import torch
-from torchtext.vocab import build_vocab_from_iterator
+# from torchtext.vocab import build_vocab_from_iterator
 from datasets import load_dataset
 import spacy
 import os
