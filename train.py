@@ -383,12 +383,12 @@ def run_training_experiment() -> None:
     import torch.nn.functional as F
     
     config = {
-        'd_model': 512,
-        'N': 6,
-        'num_heads': 8,
-        'd_ff': 2048,
-        'dropout': 0.1,
-        'batch_size': 32,
+        'd_model': 128,
+        'N': 4,
+        'num_heads': 4,
+        'd_ff': 512,
+        'dropout': 0.3,
+        'batch_size': 64,
         'num_epochs': 30,
         'warmup_steps': 4000,
         'smoothing': 0.1
