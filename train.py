@@ -389,7 +389,7 @@ def run_training_experiment() -> None:
         'd_ff': 2048,
         'dropout': 0.1,
         'batch_size': 32,
-        'num_epochs': 10,
+        'num_epochs': 30,
         'warmup_steps': 4000,
         'smoothing': 0.1
     }
@@ -435,11 +435,15 @@ def run_training_experiment() -> None:
     scheduler = NoamScheduler(optimizer, config['d_model'], config['warmup_steps'])
     loss_fn = LabelSmoothingLoss(len(vocab_en), vocab_en['<pad>'], config['smoothing']).to(device)
     
+    best_val_loss = float('inf')
     for epoch in range(config['num_epochs']):
         train_loss = run_epoch(train_loader, model, loss_fn, optimizer, scheduler, epoch, is_train=True, device=device)
         val_loss = run_epoch(val_loader, model, loss_fn, None, None, epoch, is_train=False, device=device)
         print(f"Epoch {epoch}: Train Loss {train_loss:.4f}, Val Loss {val_loss:.4f}")
-        save_checkpoint(model, optimizer, scheduler, epoch)
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            print(f"New best validation loss: {best_val_loss:.4f}. Saving checkpoint.")
+            save_checkpoint(model, optimizer, scheduler, epoch)
         
     bleu = evaluate_bleu(model, test_loader, vocab_en, device)
     wandb.log({'test_bleu': bleu})
