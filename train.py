@@ -340,7 +340,10 @@ def load_checkpoint(
     import os
     if not os.path.exists(path):
         return 0
-    checkpoint = torch.load(path, map_location='cpu')
+    try:
+        checkpoint = torch.load(path, map_location='cpu', weights_only=False)
+    except TypeError:
+        checkpoint = torch.load(path, map_location='cpu')
     model.load_state_dict(checkpoint['model_state_dict'])
     if optimizer and checkpoint.get('optimizer_state_dict'):
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])

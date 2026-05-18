@@ -457,7 +457,10 @@ class Transformer(nn.Module):
                 except Exception as e:
                     print("failed")
                     raise e
-            checkpoint = torch.load(checkpoint_path, map_location='cpu')
+            try:
+                checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
+            except TypeError:
+                checkpoint = torch.load(checkpoint_path, map_location='cpu')
             if 'model_state_dict' in checkpoint:
                 self.load_state_dict(checkpoint['model_state_dict'])
             else:
