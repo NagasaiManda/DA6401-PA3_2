@@ -404,7 +404,7 @@ def run_training_experiment() -> None:
     
     ds = dataset.Multi30kDataset()
     try:
-        vocab_de, vocab_en = dataset.load_vocab(gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpGpH")
+        vocab_de, vocab_en = dataset.load_vocab(gdrive_id="1dPR7kDXuLyQH8e3lxqnfg3D8pTKgQEcr")
         ds.vocab_de = vocab_de
         ds.vocab_en = vocab_en
     except Exception as e:
