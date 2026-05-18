@@ -390,7 +390,7 @@ def run_training_experiment() -> None:
         'N': 3,
         'num_heads': 8,
         'd_ff': 512,
-        'dropout': 0.1,
+        'dropout': 0.2,
         'batch_size': 64,
         'num_epochs': 30,
         'warmup_steps': 4000,
@@ -441,7 +441,7 @@ def run_training_experiment() -> None:
         checkpoint_path=None
     ).to(device)
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=1.0, betas=(0.9, 0.98), eps=1e-9)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1.0, betas=(0.9, 0.98), eps=1e-9, weight_decay=1e-4)
     scheduler = NoamScheduler(optimizer, config['d_model'], config['warmup_steps'])
     loss_fn = LabelSmoothingLoss(len(vocab_en), vocab_en['<pad>'], config['smoothing']).to(device)
     
@@ -458,6 +458,8 @@ def run_training_experiment() -> None:
         # Save last checkpoint
         save_checkpoint(model, optimizer, scheduler, epoch, path="checkpoint_last.pt")
         
+    print("Loading best validation checkpoint for evaluation...")
+    load_checkpoint("checkpoint.pt", model)
     bleu = evaluate_bleu(model, test_loader, vocab_en, device)
     wandb.log({'test_bleu': bleu})
     print(f"Test BLEU: {bleu:.2f}")
