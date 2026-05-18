@@ -386,13 +386,13 @@ def run_training_experiment() -> None:
     import torch.nn.functional as F
     
     config = {
-        'd_model': 256,
-        'N': 3,
-        'num_heads': 8,
+        'd_model': 128,
+        'N': 4,
+        'num_heads': 4,
         'd_ff': 512,
-        'dropout': 0.2,
+        'dropout': 0.3,
         'batch_size': 64,
-        'num_epochs': 30,
+        'num_epochs': 40,
         'warmup_steps': 4000,
         'smoothing': 0.1
     }
@@ -445,14 +445,24 @@ def run_training_experiment() -> None:
     scheduler = NoamScheduler(optimizer, config['d_model'], config['warmup_steps'])
     loss_fn = LabelSmoothingLoss(len(vocab_en), vocab_en['<pad>'], config['smoothing']).to(device)
     
-    best_val_loss = float('inf')
+    best_val_bleu = -1.0
     for epoch in range(config['num_epochs']):
         train_loss = run_epoch(train_loader, model, loss_fn, optimizer, scheduler, epoch, is_train=True, device=device)
         val_loss = run_epoch(val_loader, model, loss_fn, None, None, epoch, is_train=False, device=device)
-        print(f"Epoch {epoch}: Train Loss {train_loss:.4f}, Val Loss {val_loss:.4f}")
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            print(f"New best validation loss: {best_val_loss:.4f}. Saving best checkpoint.")
+        val_bleu = evaluate_bleu(model, val_loader, vocab_en, device)
+        print(f"Epoch {epoch}: Train Loss {train_loss:.4f}, Val Loss {val_loss:.4f}, Val BLEU {val_bleu:.2f}")
+        
+        # Log to wandb
+        wandb.log({
+            'epoch': epoch,
+            'train_loss': train_loss,
+            'val_loss': val_loss,
+            'val_bleu': val_bleu
+        })
+        
+        if val_bleu > best_val_bleu:
+            best_val_bleu = val_bleu
+            print(f"New best validation BLEU: {best_val_bleu:.2f}. Saving best checkpoint.")
             save_checkpoint(model, optimizer, scheduler, epoch, path="checkpoint.pt")
         
         # Save last checkpoint
