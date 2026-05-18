@@ -536,11 +536,12 @@ class Transformer(nn.Module):
             The fully translated English string, detokenized and clean.
         """
         import dataset
+        ds = dataset.Multi30kDataset()
         try:
             vocab_de, vocab_en = dataset.load_vocab(gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpGpH")
         except Exception as e:
+            print("Failed loading vocab")
             try:
-                ds = dataset.Multi30kDataset()
                 vocab_de, vocab_en = ds.build_vocab()
             except:
                 return ""
