@@ -15,16 +15,28 @@ class Multi30kDataset:
         try:
             self.spacy_de = spacy.load("de_core_news_sm")
             self.spacy_en = spacy.load("en_core_web_sm")
-        except:
-            os.system("python -m spacy download de_core_news_sm")
-            os.system("python -m spacy download en_core_web_sm")
-            self.spacy_de = spacy.load("de_core_news_sm")
-            self.spacy_en = spacy.load("en_core_web_sm")
+        except Exception:
+            try:
+                os.system("python -m spacy download de_core_news_sm")
+                os.system("python -m spacy download en_core_web_sm")
+                self.spacy_de = spacy.load("de_core_news_sm")
+                self.spacy_en = spacy.load("en_core_web_sm")
+            except Exception:
+                # Safe fallback if Spacy models are missing/unreachable
+                print("Warning: Could not load Spacy models. Using regex-based fallback tokenization.")
+                self.spacy_de = None
+                self.spacy_en = None
 
     def tokenize_de(self, text):
+        if self.spacy_de is None:
+            import re
+            return re.findall(r"\w+|[^\w\s]", text, re.UNICODE)
         return [tok.text for tok in self.spacy_de.tokenizer(text)]
 
     def tokenize_en(self, text):
+        if self.spacy_en is None:
+            import re
+            return re.findall(r"\w+|[^\w\s]", text, re.UNICODE)
         return [tok.text for tok in self.spacy_en.tokenizer(text)]
 
     def build_vocab(self):
