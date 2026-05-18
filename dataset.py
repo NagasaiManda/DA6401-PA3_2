@@ -39,9 +39,16 @@ class Multi30kDataset:
             except Exception as e:
                 print("failed")
                 
+        # Dynamically locate the folder containing the Spacy model config
+        model_de_path = "./de_core_news_sm"
+        if os.path.exists("./de_core_news_sm/de_core_news_sm-3.8.0"):
+            model_de_path = "./de_core_news_sm/de_core_news_sm-3.8.0"
+        elif os.path.exists("./de_core_news_sm/de_core_news_sm"):
+            model_de_path = "./de_core_news_sm/de_core_news_sm"
+            
         try:
-            if os.path.exists("./de_core_news_sm"):
-                self.spacy_de = spacy.load("./de_core_news_sm")
+            if os.path.exists(model_de_path) and os.path.isdir(model_de_path):
+                self.spacy_de = spacy.load(model_de_path)
             else:
                 self.spacy_de = spacy.load("de_core_news_sm")
         except OSError:
@@ -63,9 +70,15 @@ class Multi30kDataset:
             except Exception as e:
                 print("failed")
                 
+        model_en_path = "./en_core_web_sm"
+        if os.path.exists("./en_core_web_sm/en_core_web_sm-3.8.0"):
+            model_en_path = "./en_core_web_sm/en_core_web_sm-3.8.0"
+        elif os.path.exists("./en_core_web_sm/en_core_web_sm"):
+            model_en_path = "./en_core_web_sm/en_core_web_sm"
+            
         try:
-            if os.path.exists("./en_core_web_sm"):
-                self.spacy_en = spacy.load("./en_core_web_sm")
+            if os.path.exists(model_en_path) and os.path.isdir(model_en_path):
+                self.spacy_en = spacy.load(model_en_path)
             else:
                 self.spacy_en = spacy.load("en_core_web_sm")
         except OSError:
