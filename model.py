@@ -467,7 +467,8 @@ class Transformer(nn.Module):
         self.ds = dataset.Multi30kDataset()
         try:
             self.vocab_de, self.vocab_en = dataset.load_vocab(gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpGpH")
-        except Exception:
+        except Exception as e:
+            print(f"Could not load vocab due to error: {e}. Building from dataset instead...")
             try:
                 self.vocab_de, self.vocab_en = self.ds.build_vocab()
             except Exception:

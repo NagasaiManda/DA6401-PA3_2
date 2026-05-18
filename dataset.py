@@ -96,4 +96,4 @@ def load_vocab(vocab_path="vocab.pt", gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpG
         else:
             raise FileNotFoundError(f"{vocab_path} not found and no valid Google Drive ID provided.")
     
-    return torch.load(vocab_path)
+    return torch.load(vocab_path, map_location='cpu')

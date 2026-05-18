@@ -405,7 +405,7 @@ def run_training_experiment() -> None:
         ds.vocab_de = vocab_de
         ds.vocab_en = vocab_en
     except Exception as e:
-        print("Could not load vocab, building from dataset instead...")
+        print(f"Could not load vocab due to error: {e}. Building from dataset instead...")
         vocab_de, vocab_en = ds.build_vocab()
     
     data = ds.process_data()
@@ -434,7 +434,8 @@ def run_training_experiment() -> None:
         N=config['N'],
         num_heads=config['num_heads'],
         d_ff=config['d_ff'],
-        dropout=config['dropout']
+        dropout=config['dropout'],
+        checkpoint_path=None
     ).to(device)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=1.0, betas=(0.9, 0.98), eps=1e-9)
@@ -448,8 +449,11 @@ def run_training_experiment() -> None:
         print(f"Epoch {epoch}: Train Loss {train_loss:.4f}, Val Loss {val_loss:.4f}")
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            print(f"New best validation loss: {best_val_loss:.4f}. Saving checkpoint.")
-            save_checkpoint(model, optimizer, scheduler, epoch)
+            print(f"New best validation loss: {best_val_loss:.4f}. Saving best checkpoint.")
+            save_checkpoint(model, optimizer, scheduler, epoch, path="checkpoint.pt")
+        
+        # Save last checkpoint
+        save_checkpoint(model, optimizer, scheduler, epoch, path="checkpoint_last.pt")
         
     bleu = evaluate_bleu(model, test_loader, vocab_en, device)
     wandb.log({'test_bleu': bleu})
