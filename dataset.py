@@ -4,6 +4,23 @@ from datasets import load_dataset
 import spacy
 import os
 
+class SimpleVocab:
+    def __init__(self, stoi, itos):
+        self.stoi = stoi
+        self.itos = itos
+        
+    def __getitem__(self, token):
+        return self.stoi.get(token, self.stoi.get('<unk>', 0))
+        
+    def __contains__(self, token):
+        return token in self.stoi
+        
+    def __len__(self):
+        return len(self.stoi)
+        
+    def get_itos(self):
+        return self.itos
+
 class Multi30kDataset:
     def __init__(self, split='train'):
         """
@@ -45,7 +62,6 @@ class Multi30kDataset:
         <unk>, <pad>, <sos>, <eos>
         """
         from collections import Counter
-        from torchtext.vocab import Vocab
         
         counter_de = Counter()
         for example in self.dataset:
@@ -56,8 +72,19 @@ class Multi30kDataset:
             counter_en.update(self.tokenize_en(example['en']))
             
         specials = ['<unk>', '<pad>', '<sos>', '<eos>']
-        self.vocab_de = Vocab(counter_de, specials=specials)
-        self.vocab_en = Vocab(counter_en, specials=specials)
+        
+        # Build DE vocab: sort by frequency descending
+        sorted_tokens_de = sorted(counter_de.items(), key=lambda x: (-x[1], x[0]))
+        itos_de = specials + [token for token, freq in sorted_tokens_de if token not in specials]
+        stoi_de = {token: idx for idx, token in enumerate(itos_de)}
+        
+        # Build EN vocab: sort by frequency descending
+        sorted_tokens_en = sorted(counter_en.items(), key=lambda x: (-x[1], x[0]))
+        itos_en = specials + [token for token, freq in sorted_tokens_en if token not in specials]
+        stoi_en = {token: idx for idx, token in enumerate(itos_en)}
+        
+        self.vocab_de = SimpleVocab(stoi_de, itos_de)
+        self.vocab_en = SimpleVocab(stoi_en, itos_en)
         return self.vocab_de, self.vocab_en
 
     def process_data(self):
@@ -97,6 +124,13 @@ def load_vocab(vocab_path="vocab.pt", gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpG
             raise FileNotFoundError(f"{vocab_path} not found and no valid Google Drive ID provided.")
     
     try:
-        return torch.load(vocab_path, map_location='cpu', weights_only=False)
+        vocab_data = torch.load(vocab_path, map_location='cpu', weights_only=False)
     except TypeError:
-        return torch.load(vocab_path, map_location='cpu')
+        vocab_data = torch.load(vocab_path, map_location='cpu')
+        
+    if isinstance(vocab_data, dict) and 'de_stoi' in vocab_data:
+        vocab_de = SimpleVocab(vocab_data['de_stoi'], vocab_data['de_itos'])
+        vocab_en = SimpleVocab(vocab_data['en_stoi'], vocab_data['en_itos'])
+        return vocab_de, vocab_en
+    else:
+        return vocab_data
