@@ -23,6 +23,7 @@ from typing import Optional, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import dataset
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -456,6 +457,16 @@ class Transformer(nn.Module):
             else:
                 self.load_state_dict(checkpoint)
 
+        # Initialize dataset and vocabulary here (outside infer()) to avoid 3s inference timeouts
+        self.ds = dataset.Multi30kDataset()
+        try:
+            self.vocab_de, self.vocab_en = dataset.load_vocab(gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpGpH")
+        except Exception:
+            try:
+                self.vocab_de, self.vocab_en = self.ds.build_vocab()
+            except Exception:
+                self.vocab_de, self.vocab_en = None, None
+
     # ── AUTOGRADER HOOKS ── keep these signatures exactly ─────────────
 
     def encode(
@@ -535,41 +546,33 @@ class Transformer(nn.Module):
         Returns:
             The fully translated English string, detokenized and clean.
         """
-        import dataset
-        ds = dataset.Multi30kDataset()
-        try:
-            vocab_de, vocab_en = dataset.load_vocab(gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpGpH")
-        except Exception as e:
-            print("Failed loading vocab")
-            try:
-                vocab_de, vocab_en = ds.build_vocab()
-            except:
-                return ""
+        if self.ds is None or self.vocab_de is None or self.vocab_en is None:
+            return ""
             
         device = next(self.parameters()).device
         self.eval()
         
-        tokens = ds.tokenize_de(src_sentence)
-        src_indices = [vocab_de['<sos>']] + [vocab_de[t] if t in vocab_de else vocab_de['<unk>'] for t in tokens] + [vocab_de['<eos>']]
+        tokens = self.ds.tokenize_de(src_sentence)
+        src_indices = [self.vocab_de['<sos>']] + [self.vocab_de[t] if t in self.vocab_de else self.vocab_de['<unk>'] for t in tokens] + [self.vocab_de['<eos>']]
         src_tensor = torch.tensor(src_indices).unsqueeze(0).to(device)
-        src_mask = make_src_mask(src_tensor, vocab_de['<pad>']).to(device)
+        src_mask = make_src_mask(src_tensor, self.vocab_de['<pad>']).to(device)
         
         memory = self.encode(src_tensor, src_mask)
         
-        ys = torch.ones(1, 1).fill_(vocab_en['<sos>']).type_as(src_tensor)
+        ys = torch.ones(1, 1).fill_(self.vocab_en['<sos>']).type_as(src_tensor).to(device)
         
         for i in range(100 - 1):
-            tgt_mask = make_tgt_mask(ys, vocab_en['<pad>']).to(device)
+            tgt_mask = make_tgt_mask(ys, self.vocab_en['<pad>']).to(device)
             out = self.decode(memory, src_mask, ys, tgt_mask)
             prob = F.softmax(out[:, -1], dim=-1)
             _, next_word = torch.max(prob, dim=1)
             next_word = next_word.item()
-            ys = torch.cat([ys, torch.ones(1, 1).fill_(next_word).type_as(src_tensor)], dim=1)
-            if next_word == vocab_en['<eos>']:
+            ys = torch.cat([ys, torch.ones(1, 1).fill_(next_word).type_as(src_tensor).to(device)], dim=1)
+            if next_word == self.vocab_en['<eos>']:
                 break
                 
         # Detokenize
-        itos = getattr(vocab_en, 'get_itos', lambda: vocab_en.itos)()
+        itos = getattr(self.vocab_en, 'get_itos', lambda: self.vocab_en.itos)()
         tgt_tokens = [itos[idx.item()] for idx in ys[0]]
         if '<sos>' in tgt_tokens: tgt_tokens.remove('<sos>')
         if '<eos>' in tgt_tokens: tgt_tokens.remove('<eos>')
