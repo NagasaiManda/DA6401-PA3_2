@@ -450,7 +450,13 @@ class Transformer(nn.Module):
         
         if checkpoint_path is not None:
             if not os.path.exists(checkpoint_path):
-                gdown.download(id="1hrbaT4MBboyU2uBX-gAZW03xZMqjCMlf", output=checkpoint_path, quiet=False)
+                try:
+                    result = gdown.download(id="1hrbaT4MBboyU2uBX-gAZW03xZMqjCMlf", output=checkpoint_path, quiet=False)
+                    if result is None or not os.path.exists(checkpoint_path):
+                        raise RuntimeError("Download returned None or file does not exist")
+                except Exception as e:
+                    print("failed")
+                    raise e
             checkpoint = torch.load(checkpoint_path, map_location='cpu')
             if 'model_state_dict' in checkpoint:
                 self.load_state_dict(checkpoint['model_state_dict'])

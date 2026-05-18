@@ -86,7 +86,13 @@ def load_vocab(vocab_path="vocab.pt", gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpG
     if not os.path.exists(vocab_path):
         if gdrive_id and gdrive_id != "YOUR_GDRIVE_ID_HERE":
             print(f"Downloading vocab from Google Drive ({gdrive_id})...")
-            gdown.download(id=gdrive_id, output=vocab_path, quiet=False)
+            try:
+                result = gdown.download(id=gdrive_id, output=vocab_path, quiet=False)
+                if result is None or not os.path.exists(vocab_path):
+                    raise RuntimeError("Download returned None or file does not exist")
+            except Exception as e:
+                print("failed")
+                raise e
         else:
             raise FileNotFoundError(f"{vocab_path} not found and no valid Google Drive ID provided.")
     
