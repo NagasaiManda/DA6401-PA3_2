@@ -400,7 +400,13 @@ def run_training_experiment() -> None:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     
     ds = dataset.Multi30kDataset()
-    vocab_de, vocab_en = ds.build_vocab()
+    try:
+        vocab_de, vocab_en = dataset.load_vocab(gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpGpH")
+        ds.vocab_de = vocab_de
+        ds.vocab_en = vocab_en
+    except Exception as e:
+        print("Could not load vocab, building from dataset instead...")
+        vocab_de, vocab_en = ds.build_vocab()
     
     data = ds.process_data()
     train_data = data[:int(0.8 * len(data))]

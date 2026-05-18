@@ -66,3 +66,16 @@ class Multi30kDataset:
             
             data.append((torch.tensor(de_indices), torch.tensor(en_indices)))
         return data
+
+def load_vocab(vocab_path="vocab.pt", gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpGpH"):
+    import os
+    import gdown
+    import torch
+    if not os.path.exists(vocab_path):
+        if gdrive_id and gdrive_id != "YOUR_GDRIVE_ID_HERE":
+            print(f"Downloading vocab from Google Drive ({gdrive_id})...")
+            gdown.download(id=gdrive_id, output=vocab_path, quiet=False)
+        else:
+            raise FileNotFoundError(f"{vocab_path} not found and no valid Google Drive ID provided.")
+    
+    return torch.load(vocab_path)

@@ -537,10 +537,13 @@ class Transformer(nn.Module):
         """
         import dataset
         try:
-            ds = dataset.Multi30kDataset()
-            vocab_de, vocab_en = ds.build_vocab()
-        except:
-            return ""
+            vocab_de, vocab_en = dataset.load_vocab(gdrive_id="1I5H6o_sRs6xlu-hIDuovFdxLYfYYpGpH")
+        except Exception as e:
+            try:
+                ds = dataset.Multi30kDataset()
+                vocab_de, vocab_en = ds.build_vocab()
+            except:
+                return ""
             
         device = next(self.parameters()).device
         self.eval()
