@@ -1,7 +1,7 @@
 # DA6401 - Assignment 3: Transformer for Machine Translation
 
-**GitHub Repo:** [Add link here]
-**WandB Report:** [Add link here]
+**GitHub Repo:** https://github.com/NagasaiManda/DA6401-PA3_2
+**WandB Report:** https://api.wandb.ai/links/ee23b042-indian-institute-of-technology-madras/9755tmrx
 
 ## Overview
 This project implements the landmark "Attention Is All You Need" Transformer architecture from scratch in PyTorch. It trains a Neural Machine Translation (NMT) system to translate text from German to English using the Multi30k dataset.
