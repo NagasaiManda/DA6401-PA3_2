@@ -563,7 +563,14 @@ class Transformer(nn.Module):
         self.eval()
         
         tokens = self.ds.tokenize_de(src_sentence)
-        src_indices = [self.vocab_de['<sos>']] + [self.vocab_de[t] if t in self.vocab_de else self.vocab_de['<unk>'] for t in tokens] + [self.vocab_de['<eos>']]
+        unk_idx = self.vocab_de['<unk>']
+        src_indices = [self.vocab_de['<sos>']]
+        for t in tokens:
+            idx = self.vocab_de[t] if t in self.vocab_de else unk_idx
+            if idx >= self.src_vocab_size:
+                idx = unk_idx
+            src_indices.append(idx)
+        src_indices.append(self.vocab_de['<eos>'])
         src_tensor = torch.tensor(src_indices).unsqueeze(0).to(device)
         src_mask = make_src_mask(src_tensor, self.vocab_de['<pad>']).to(device)
         
