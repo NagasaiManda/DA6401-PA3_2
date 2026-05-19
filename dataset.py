@@ -92,10 +92,10 @@ class Multi30kDataset:
                 self.spacy_en = en_core_web_sm.load()
 
     def tokenize_de(self, text):
-        return [tok.text for tok in self.spacy_de.tokenizer(text)]
+        return [tok.text.lower() for tok in self.spacy_de.tokenizer(text)]
 
     def tokenize_en(self, text):
-        return [tok.text for tok in self.spacy_en.tokenizer(text)]
+        return [tok.text.lower() for tok in self.spacy_en.tokenizer(text)]
 
     def build_vocab(self):
         """
