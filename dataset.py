@@ -1,8 +1,7 @@
 import torch
-# from torchtext.vocab import build_vocab_from_iterator
 from datasets import load_dataset
-import spacy
 import os
+import re
 
 class SimpleVocab:
     def __init__(self, stoi, itos):
@@ -28,74 +27,12 @@ class Multi30kDataset:
         """
         self.split = split
         self.dataset = load_dataset('bentrevett/multi30k', split=split)
-        
-        # Load Spacy DE (German) programmatically with absolute reliability
-        if not os.path.exists("./de_core_news_sm"):
-            import gdown
-            print("Downloading de_core_news_sm folder from Google Drive...")
-            try:
-                # Use gdown's download_folder function to fetch the directory
-                gdown.download_folder(id="1tYh6mk_mq8ORPGs4TUz7si0vYdGtwcZU", output="./de_core_news_sm", quiet=False)
-            except Exception as e:
-                print("failed")
-                
-        # Dynamically locate the folder containing the Spacy model config
-        model_de_path = "./de_core_news_sm"
-        if os.path.exists("./de_core_news_sm/de_core_news_sm-3.8.0"):
-            model_de_path = "./de_core_news_sm/de_core_news_sm-3.8.0"
-        elif os.path.exists("./de_core_news_sm/de_core_news_sm"):
-            model_de_path = "./de_core_news_sm/de_core_news_sm"
-            
-        try:
-            if os.path.exists(model_de_path) and os.path.isdir(model_de_path):
-                self.spacy_de = spacy.load(model_de_path)
-            else:
-                self.spacy_de = spacy.load("de_core_news_sm")
-        except OSError:
-            from spacy import cli
-            print("Downloading de_core_news_sm...")
-            cli.download("de_core_news_sm")
-            try:
-                self.spacy_de = spacy.load("de_core_news_sm")
-            except OSError:
-                import de_core_news_sm
-                self.spacy_de = de_core_news_sm.load()
-                
-        # Load Spacy EN (English) programmatically with absolute reliability
-        if not os.path.exists("./en_core_web_sm"):
-            import gdown
-            print("Downloading en_core_web_sm folder from Google Drive...")
-            try:
-                gdown.download_folder(id="1yIz7BLWGItMHqwA7mLs9MCr1OPskE4IT", output="./en_core_web_sm", quiet=False)
-            except Exception as e:
-                print("failed")
-                
-        model_en_path = "./en_core_web_sm"
-        if os.path.exists("./en_core_web_sm/en_core_web_sm-3.8.0"):
-            model_en_path = "./en_core_web_sm/en_core_web_sm-3.8.0"
-        elif os.path.exists("./en_core_web_sm/en_core_web_sm"):
-            model_en_path = "./en_core_web_sm/en_core_web_sm"
-            
-        try:
-            if os.path.exists(model_en_path) and os.path.isdir(model_en_path):
-                self.spacy_en = spacy.load(model_en_path)
-            else:
-                self.spacy_en = spacy.load("en_core_web_sm")
-        except OSError:
-            from spacy import cli
-            print("Downloading en_core_web_sm...")
-            cli.download("en_core_web_sm")
-            try:
-                self.spacy_en = spacy.load("en_core_web_sm")
-            except OSError:
-                import en_core_web_sm
-                self.spacy_en = en_core_web_sm.load()
 
     def tokenize_de(self, text):
-        return [tok.text.lower() for tok in self.spacy_de.tokenizer(text)]
+        return re.findall(r"\b\w+\b", text.lower())
 
     def tokenize_en(self, text):
-        return [tok.text.lower() for tok in self.spacy_en.tokenizer(text)]
+        return re.findall(r"\b\w+\b", text.lower())
 
     def build_vocab(self):
         """

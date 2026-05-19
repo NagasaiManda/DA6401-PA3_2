@@ -422,13 +422,13 @@ class Transformer(nn.Module):
 
     def __init__(
         self,
-        src_vocab_size: int = 18669,
-        tgt_vocab_size: int = 9797,
-        d_model:   int   = 128,
-        N:         int   = 4,
-        num_heads: int   = 4,
+        src_vocab_size: int = 17893,
+        tgt_vocab_size: int = 9766,
+        d_model:   int   = 256,
+        N:         int   = 3,
+        num_heads: int   = 8,
         d_ff:      int   = 512,
-        dropout:   float = 0.3,
+        dropout:   float = 0.1,
         checkpoint_path: str = "checkpoint.pt",
     ) -> None:
         super().__init__()
