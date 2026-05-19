@@ -22,9 +22,6 @@ class SimpleVocab:
 
 class Multi30kDataset:
     def __init__(self, split='train'):
-        """
-        Loads the Multi30k dataset and prepares tokenizers.
-        """
         self.split = split
         self.dataset = load_dataset('bentrevett/multi30k', split=split)
 
@@ -35,10 +32,6 @@ class Multi30kDataset:
         return re.findall(r"\b\w+\b", text.lower())
 
     def build_vocab(self):
-        """
-        Builds the vocabulary mapping for src (de) and tgt (en), including:
-        <unk>, <pad>, <sos>, <eos>
-        """
         from collections import Counter
         
         counter_de = Counter()
@@ -51,12 +44,10 @@ class Multi30kDataset:
             
         specials = ['<unk>', '<pad>', '<sos>', '<eos>']
         
-        # Build DE vocab: sort by frequency descending
         sorted_tokens_de = sorted(counter_de.items(), key=lambda x: (-x[1], x[0]))
         itos_de = specials + [token for token, freq in sorted_tokens_de if token not in specials]
         stoi_de = {token: idx for idx, token in enumerate(itos_de)}
         
-        # Build EN vocab: sort by frequency descending
         sorted_tokens_en = sorted(counter_en.items(), key=lambda x: (-x[1], x[0]))
         itos_en = specials + [token for token, freq in sorted_tokens_en if token not in specials]
         stoi_en = {token: idx for idx, token in enumerate(itos_en)}
@@ -66,10 +57,6 @@ class Multi30kDataset:
         return self.vocab_de, self.vocab_en
 
     def process_data(self):
-        """
-        Convert English and German sentences into integer token lists using
-        spacy and the defined vocabulary. 
-        """
         if not hasattr(self, 'vocab_de'):
             self.build_vocab()
             
@@ -84,6 +71,7 @@ class Multi30kDataset:
             data.append((torch.tensor(de_indices), torch.tensor(en_indices)))
         return data
 
+# Code from chatgpt
 def load_vocab(vocab_path="vocab.pt", gdrive_id="1dPR7kDXuLyQH8e3lxqnfg3D8pTKgQEcr"):
     import os
     import gdown

@@ -466,7 +466,6 @@ class Transformer(nn.Module):
             else:
                 self.load_state_dict(checkpoint)
 
-        # Initialize dataset and vocabulary here (outside infer()) to avoid 3s inference timeouts
         self.ds = dataset.Multi30kDataset()
         try:
             self.vocab_de, self.vocab_en = dataset.load_vocab(gdrive_id="1dPR7kDXuLyQH8e3lxqnfg3D8pTKgQEcr") # https://drive.google.com/file/d/1dPR7kDXuLyQH8e3lxqnfg3D8pTKgQEcr/view?usp=sharing
@@ -588,7 +587,6 @@ class Transformer(nn.Module):
             if next_word == self.vocab_en['<eos>']:
                 break
                 
-        # Detokenize
         itos = getattr(self.vocab_en, 'get_itos', lambda: self.vocab_en.itos)()
         tgt_tokens = [itos[idx.item()] for idx in ys[0]]
         if '<sos>' in tgt_tokens: tgt_tokens.remove('<sos>')
